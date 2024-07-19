@@ -1,0 +1,42 @@
+import serial
+import matplotlib.pyplot as plt
+
+try:
+    arduinoData = serial.Serial('com7', 9600)
+except serial.SerialException as e:
+    print(f"Помилка при підключенні до Arduino: {e}")
+    exit()
+
+xdata, ydata = [], []
+
+plt.ion() 
+fig, ax = plt.subplots()
+line, = ax.plot(xdata, ydata, 'b-', marker='o') 
+
+ax.set_title('Temperature Over Time')
+ax.set_xlabel('Measurement Number')
+ax.set_ylabel('Temperature (°C)')
+ax.grid(True)
+
+while True:
+    if arduinoData.inWaiting() > 0:
+        dataPacket = arduinoData.readline()
+        dataPacket = dataPacket.decode('utf-8').strip() 
+        print(f"Received data: {dataPacket}")
+        try:
+            if "Temp: " in dataPacket and " C" in dataPacket:
+                temperature = float(dataPacket.split("Temp: ")[1].split(" C")[0])
+                print(f"Temperature: {temperature} °C")
+                xdata.append(len(ydata) + 1)
+                ydata.append(temperature)
+                
+                line.set_xdata(xdata)
+                line.set_ydata(ydata)
+                ax.relim() 
+                ax.autoscale_view()
+                plt.draw()
+                plt.pause(0.1)
+            else:
+                print(f"Невалідні дані: {dataPacket}")
+        except ValueError:
+            print(f"Невалідні дані: {dataPacket}")
