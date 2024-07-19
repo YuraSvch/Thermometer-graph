@@ -1,0 +1,57 @@
+#include <LiquidCrystal.h>
+#include <microDS18B20.h>
+
+MicroDS18B20<2> ds;
+
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+void setup() {
+  Serial.begin(9600);
+
+  lcd.begin(16, 2);
+  
+  lcd.print("Temp Sensor Init");
+
+  Serial.println("Temp Sensor Init");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  ds.requestTemp();
+  delay(1000);
+
+  if (ds.readTemp()) {
+    lcd.clear();
+
+    float temperature = ds.getTemp();
+
+    lcd.setCursor(0, 0);
+    lcd.print("Temp: ");
+    lcd.print(temperature);
+    lcd.print((char)223);
+    lcd.print("C");
+
+    lcd.setCursor(0, 1);
+    if (temperature < 10) {
+      lcd.print("It's cold");
+    } else if (temperature >= 10 && temperature < 20) {
+      lcd.print("It's warm");
+    } else if(temperature >20 && temperature < 30)  {
+      lcd.print("It's hot");
+    } else {
+      lcd.print("It's so hot");
+    }
+
+
+    Serial.print("Temp: ");
+    Serial.print(temperature);
+    Serial.println(" C");
+  } else {
+
+    Serial.println("Error reading temperature");
+  }
+
+  delay(2000);
+}
